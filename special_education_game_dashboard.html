@@ -1,0 +1,834 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; }
+  :root {
+    --purple: #7F77DD; --purple-light: #EEEDFE; --purple-dark: #3C3489;
+    --teal: #1D9E75; --teal-light: #E1F5EE; --teal-dark: #085041;
+    --coral: #D85A30; --coral-light: #FAECE7; --coral-dark: #712B13;
+    --amber: #BA7517; --amber-light: #FAEEDA; --amber-dark: #633806;
+    --pink: #D4537E; --pink-light: #FBEAF0; --pink-dark: #72243E;
+    --blue: #378ADD; --blue-light: #E6F1FB; --blue-dark: #0C447C;
+    --green: #639922; --green-light: #EAF3DE; --green-dark: #27500A;
+  }
+
+  .app { min-height: 100vh; background: linear-gradient(135deg, #1a0533 0%, #0d1f4a 40%, #0a3d2e 100%); padding: 0; }
+
+  /* HERO */
+  .hero { text-align: center; padding: 2rem 1rem 1.5rem; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 30% 50%, rgba(127,119,221,0.15) 0%, transparent 50%), radial-gradient(circle at 70% 30%, rgba(29,158,117,0.12) 0%, transparent 50%); pointer-events: none; }
+  .hero-badge { display: inline-block; background: rgba(127,119,221,0.2); border: 1px solid rgba(127,119,221,0.4); border-radius: 50px; padding: 6px 16px; color: #AFA9EC; font-size: 12px; margin-bottom: 1rem; }
+  .hero h1 { font-size: clamp(1.4rem, 4vw, 2.2rem); font-weight: 700; background: linear-gradient(135deg, #AFA9EC, #5DCAA5, #F0997B); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; line-height: 1.3; }
+  .hero p { color: rgba(255,255,255,0.7); font-size: 0.95rem; max-width: 600px; margin: 0 auto 1.2rem; }
+  .faculty-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(29,158,117,0.15); border: 1px solid rgba(29,158,117,0.3); border-radius: 50px; padding: 8px 20px; color: #5DCAA5; font-size: 0.9rem; }
+
+  /* XP BAR */
+  .xp-section { padding: 0 1rem 1rem; }
+  .xp-bar-wrap { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .xp-label { color: #AFA9EC; font-size: 13px; min-width: 80px; text-align: right; }
+  .xp-track { flex: 1; height: 12px; background: rgba(255,255,255,0.1); border-radius: 50px; overflow: hidden; }
+  .xp-fill { height: 100%; background: linear-gradient(90deg, #7F77DD, #5DCAA5); border-radius: 50px; transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); width: 0%; }
+  .xp-val { color: #fff; font-size: 13px; font-weight: 600; min-width: 60px; }
+  .xp-stats { display: flex; gap: 8px; margin-top: 8px; }
+  .xp-stat { flex: 1; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 6px 10px; text-align: center; }
+  .xp-stat .n { font-size: 1.1rem; font-weight: 700; color: #fff; }
+  .xp-stat .l { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+  /* LEVELS NAV */
+  .levels-nav { display: flex; gap: 8px; padding: 0 1rem 1rem; overflow-x: auto; }
+  .level-btn { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; cursor: pointer; transition: all 0.3s; color: rgba(255,255,255,0.5); font-size: 12px; min-width: 90px; }
+  .level-btn.active { background: rgba(127,119,221,0.2); border-color: rgba(127,119,221,0.5); color: #AFA9EC; }
+  .level-btn.locked { opacity: 0.4; cursor: not-allowed; }
+  .level-btn .icon { font-size: 1.4rem; }
+  .level-btn .name { font-weight: 600; }
+  .level-btn .sub { font-size: 10px; opacity: 0.7; }
+
+  /* CONTENT */
+  .content { padding: 0 1rem 2rem; }
+
+  /* PHASE 1 - ACCORDION */
+  .phase { display: none; }
+  .phase.active { display: block; }
+  .phase-title { color: #fff; font-size: 1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+  .phase-title span { background: rgba(127,119,221,0.3); border-radius: 6px; padding: 3px 10px; font-size: 11px; }
+
+  .accordion { display: flex; flex-direction: column; gap: 8px; }
+  .acc-item { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; transition: border-color 0.3s; }
+  .acc-item.read { border-color: rgba(29,158,117,0.4); }
+  .acc-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; user-select: none; }
+  .acc-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+  .acc-title { flex: 1; color: #fff; font-size: 0.9rem; font-weight: 600; }
+  .acc-chevron { color: rgba(255,255,255,0.4); transition: transform 0.3s; font-size: 0.8rem; }
+  .acc-item.open .acc-chevron { transform: rotate(180deg); }
+  .acc-body { display: none; padding: 0 16px 16px; }
+  .acc-item.open .acc-body { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .acc-body p { color: rgba(255,255,255,0.75); font-size: 0.88rem; line-height: 1.8; margin-bottom: 10px; }
+  .acc-body h4 { color: #AFA9EC; font-size: 0.85rem; font-weight: 600; margin: 12px 0 6px; }
+  .point-list { list-style: none; }
+  .point-list li { color: rgba(255,255,255,0.75); font-size: 0.85rem; line-height: 1.7; padding: 5px 0 5px 12px; border-right: 2px solid rgba(127,119,221,0.4); margin-bottom: 4px; padding-right: 10px; }
+  .point-list.teal li { border-right-color: rgba(29,158,117,0.5); }
+  .point-list.coral li { border-right-color: rgba(216,90,48,0.5); }
+  .point-list.amber li { border-right-color: rgba(186,117,23,0.5); }
+  .point-list.pink li { border-right-color: rgba(212,83,126,0.5); }
+  .point-list.blue li { border-right-color: rgba(55,138,221,0.5); }
+  .read-btn { margin-top: 12px; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(29,158,117,0.4); background: rgba(29,158,117,0.1); color: #5DCAA5; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; }
+  .read-btn:hover { background: rgba(29,158,117,0.2); }
+  .read-btn.done { background: rgba(29,158,117,0.25); border-color: #1D9E75; }
+  .complete-phase-btn { width: 100%; margin-top: 1rem; padding: 14px; background: linear-gradient(135deg, #7F77DD, #5DCAA5); border: none; border-radius: 12px; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .complete-phase-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(127,119,221,0.4); }
+  .complete-phase-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* PHASE 2 - MIND MAP */
+  .mindmap-wrap { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; overflow: hidden; height: 500px; position: relative; cursor: grab; }
+  .mindmap-wrap:active { cursor: grabbing; }
+  #mindmapSvg { width: 100%; height: 100%; }
+  .mindmap-node { cursor: pointer; transition: all 0.2s; }
+  .node-rect { rx: 12; ry: 12; }
+  .mindmap-hint { text-align: center; color: rgba(255,255,255,0.4); font-size: 12px; margin-top: 8px; }
+
+  /* PHASE 3 - QUIZ */
+  .quiz-header { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px 16px; margin-bottom: 1rem; display: flex; align-items: center; gap: 12px; }
+  .quiz-score-wrap { margin-right: auto; text-align: center; }
+  .quiz-score { font-size: 1.4rem; font-weight: 700; color: #fff; }
+  .quiz-score-sub { font-size: 11px; color: rgba(255,255,255,0.4); }
+  .q-tabs { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .q-tab { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: transparent; color: rgba(255,255,255,0.5); font-size: 12px; cursor: pointer; transition: all 0.2s; }
+  .q-tab.active { background: rgba(127,119,221,0.2); border-color: rgba(127,119,221,0.5); color: #AFA9EC; }
+  .questions-grid { display: flex; flex-direction: column; gap: 10px; }
+  /* MCQ Card */
+  .q-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; transition: border-color 0.3s; }
+  .q-card.answered { border-color: rgba(29,158,117,0.4); }
+  .q-num { font-size: 11px; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
+  .q-text { color: rgba(255,255,255,0.85); font-size: 0.88rem; line-height: 1.6; margin-bottom: 10px; }
+  .q-options { display: flex; flex-direction: column; gap: 6px; }
+  .q-opt { padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.7); font-size: 0.83rem; cursor: pointer; transition: all 0.2s; text-align: right; }
+  .q-opt:hover:not(.locked) { border-color: rgba(127,119,221,0.4); background: rgba(127,119,221,0.1); }
+  .q-opt.correct { background: rgba(29,158,117,0.2); border-color: rgba(29,158,117,0.5); color: #5DCAA5; }
+  .q-opt.wrong { background: rgba(216,90,48,0.15); border-color: rgba(216,90,48,0.4); color: #F0997B; }
+  .q-opt.locked { cursor: default; }
+  /* Flip Card */
+  .flip-card { perspective: 1000px; height: 160px; cursor: pointer; }
+  .flip-inner { width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; position: relative; }
+  .flip-card.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: center; }
+  .flip-front { background: rgba(127,119,221,0.1); border: 1px solid rgba(127,119,221,0.2); }
+  .flip-back { background: rgba(29,158,117,0.1); border: 1px solid rgba(29,158,117,0.3); transform: rotateY(180deg); }
+  .flip-front p { color: rgba(255,255,255,0.85); font-size: 0.85rem; line-height: 1.6; }
+  .flip-back p { color: #5DCAA5; font-size: 0.83rem; line-height: 1.7; }
+  .flip-hint { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 8px; }
+
+  /* TOAST */
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-60px); background: rgba(29,158,117,0.9); color: #fff; padding: 10px 20px; border-radius: 50px; font-size: 13px; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 9999; pointer-events: none; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .tag { display: inline-block; border-radius: 50px; padding: 3px 10px; font-size: 11px; font-weight: 600; margin: 2px; }
+  .tag.purple { background: rgba(127,119,221,0.2); color: #AFA9EC; border: 1px solid rgba(127,119,221,0.3); }
+  .tag.teal { background: rgba(29,158,117,0.2); color: #5DCAA5; border: 1px solid rgba(29,158,117,0.3); }
+  .tag.coral { background: rgba(216,90,48,0.2); color: #F0997B; border: 1px solid rgba(216,90,48,0.3); }
+
+  .divider { height: 1px; background: rgba(255,255,255,0.07); margin: 12px 0; }
+</style>
+
+<div class="app">
+  <div class="hero">
+    <div class="hero-badge">🎓 التدريب الميداني في التربية الخاصة — الفصل الثالث</div>
+    <h1>أهلاً وسهلاً بدفعتنا المميزة<br>في كلية التربية للطفولة المبكرة 🌟</h1>
+    <p>استعدوا لرحلة تعليمية استثنائية! ستتحولون من طلاب يقرأون PDF إلى أبطال يتقنون بيئة التعليم لذوي الاحتياجات الخاصة</p>
+    <div class="faculty-badge">✨ بإشراف أ.د. سماح عبد الفتاح مرزوق — أنتم النجوم القادمون!</div>
+  </div>
+
+  <div class="xp-section">
+    <div class="xp-bar-wrap">
+      <div class="xp-label">⚡ نقاط XP</div>
+      <div class="xp-track"><div class="xp-fill" id="xpFill"></div></div>
+      <div class="xp-val" id="xpVal">0 / 600</div>
+    </div>
+    <div class="xp-stats">
+      <div class="xp-stat"><div class="n" id="statSections">0</div><div class="l">فقرات مقروءة</div></div>
+      <div class="xp-stat"><div class="n" id="statAnswered">0</div><div class="l">أسئلة مجابة</div></div>
+      <div class="xp-stat"><div class="n" id="statCorrect">0</div><div class="l">إجابات صحيحة</div></div>
+      <div class="xp-stat"><div class="n" id="statLevel">1</div><div class="l">المستوى الحالي</div></div>
+    </div>
+  </div>
+
+  <div class="levels-nav">
+    <div class="level-btn active" onclick="switchPhase(1)" id="lvl1Btn">
+      <div class="icon">📚</div>
+      <div class="name">المرحلة 1</div>
+      <div class="sub">الاستكشاف</div>
+    </div>
+    <div class="level-btn locked" onclick="switchPhase(2)" id="lvl2Btn">
+      <div class="icon">🗺️</div>
+      <div class="name">المرحلة 2</div>
+      <div class="sub">الخريطة الذهنية</div>
+    </div>
+    <div class="level-btn locked" onclick="switchPhase(3)" id="lvl3Btn">
+      <div class="icon">🏆</div>
+      <div class="name">المرحلة 3</div>
+      <div class="sub">التحدي الكبير</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- PHASE 1 -->
+    <div class="phase active" id="phase1">
+      <div class="phase-title">📚 مرحلة الاستكشاف <span>اقرأ كل قسم واضغط "أتممت القراءة"</span></div>
+      <div class="accordion" id="accordion">
+
+        <div class="acc-item" data-id="0">
+          <div class="acc-header" onclick="toggleAcc(0)">
+            <div class="acc-icon" style="background:rgba(127,119,221,0.2);">🏫</div>
+            <div class="acc-title">ما المقصود بإدارة البيئة التعليمية؟</div>
+            <div class="acc-chevron">▼</div>
+          </div>
+          <div class="acc-body">
+            <p>إدارة البيئة التعليمية هي <strong style="color:#AFA9EC">كل ما يقوم به المعلم</strong> داخل غرفة الصف من سلوكيات — سواء لفظية أو عملية، مباشرة أو غير مباشرة — بهدف تحقيق الأهداف التربوية ودفع الطفل نحو التغيير الإيجابي في سلوكه.</p>
+            <p>بكلمات أبسط: هي الخطوات والإجراءات الكاملة لبناء والحفاظ على بيئة صفية مناسبة لعمليتَي التعليم والتعلم.</p>
+            <h4>مكونات إدارة البيئة الصفية الست:</h4>
+            <ul class="point-list">
+              <li>أولاً: تنظيم البيئة الفيزيقية المادية</li>
+              <li>ثانياً: حفظ النظام وبناء القواعد والتعليمات</li>
+              <li>ثالثاً: توفير المناخ العاطفي والاجتماعي</li>
+              <li>رابعاً: إدارة الخبرات التعليمية</li>
+              <li>خامساً: إدارة سلوك الطفل</li>
+              <li>سادساً: إدارة الوقت</li>
+            </ul>
+            <button class="read-btn" onclick="markRead(0)">✅ أتممت القراءة — +30 XP</button>
+          </div>
+        </div>
+
+        <div class="acc-item" data-id="1">
+          <div class="acc-header" onclick="toggleAcc(1)">
+            <div class="acc-icon" style="background:rgba(29,158,117,0.2);">🏗️</div>
+            <div class="acc-title">أولاً: تنظيم البيئة الفيزيقية المادية</div>
+            <div class="acc-chevron">▼</div>
+          </div>
+          <div class="acc-body">
+            <p>تشير الدراسات إلى وجود <strong style="color:#5DCAA5">علاقة قوية بين سلوك الطفل وترتيب المكان</strong>. البيئة المدرسية الجذابة والمنظمة تعكس توقعات عالية وتؤثر إيجاباً على سلوك الطفل ودافعيته للتعلم.</p>
+            <h4>🪑 الأثاث والفضاء:</h4>
+            <ul class="point-list teal">
+              <li>طاولات وكراسي يسهل تحريكها لتناسب المواقف المختلفة وتسمح بالتفاعل</li>
+              <li>مساحة واسعة تسمح بالمرور بين المقاعد بسهولة</li>
+              <li>تنظيم الفصل بشكل جذاب يدفع الطلبة للعمل والتعاون</li>
+            </ul>
+            <h4>🔇 التحكم في المشتتات:</h4>
+            <ul class="point-list coral">
+              <li>إزالة كل مشتتات الانتباه كاللوحات والأدوات غير المرتبطة بالنشاط</li>
+              <li>تغطية الأبواب والنوافذ التي تسمح بالانشغال خارج الفصل</li>
+              <li>اختيار فصل بعيد عن الضوضاء</li>
+              <li>استخدام سجاد ذو لون سادة لامتصاص الأصوات والتشويش</li>
+            </ul>
+            <h4>🗺️ التنظيم والتوجيه:</h4>
+            <ul class="point-list amber">
+              <li>وضع أسهم وإشارات وبطاقات تحدد مواقع الأشياء بالقاعة</li>
+              <li>وضع قوائم بما هو متوفر وما هو مفقود من أدوات</li>
+              <li>تحديد أركان هادئة بعيداً عن الأركان الصاخبة مع حدود واضحة</li>
+              <li>ترتيب الفصل ليسمح للمعلم بمتابعة جميع الأطفال</li>
+              <li>توفر حمام قريب ومغسلة داخل الفصل إن أمكن</li>
+            </ul>
+            <h4>💡 المتطلبات التقنية:</h4>
+            <ul class="point-list blue">
+              <li>تهوية جيدة وإضاءة جيدة</li>
+              <li>تحديد نوعية أفياش الكهرباء للسلامة</li>
+              <li>أدوات ووسائل آمنة ومريحة ومناسبة لعمر وخصائص الأطفال</li>
+            </ul>
+            <button class="read-btn" onclick="markRead(1)">✅ أتممت القراءة — +30 XP</button>
+          </div>
+        </div>
+
+        <div class="acc-item" data-id="2">
+          <div class="acc-header" onclick="toggleAcc(2)">
+            <div class="acc-icon" style="background:rgba(212,83,126,0.2);">📋</div>
+            <div class="acc-title">ثانياً: حفظ النظام وبناء القواعد الصفية</div>
+            <div class="acc-chevron">▼</div>
+          </div>
+          <div class="acc-body">
+            <p>صياغة التعليمات والقواعد الخاصة بالمدرسة والصف تعتبر أمراً هاماً لكلا الأطفال والمعلمين، إذ تسهل دور المعلم في إدارة الصف وتجعل أداء الطالب أكثر وضوحاً.</p>
+            <h4>الاستراتيجيات المثلى لبناء القواعد:</h4>
+            <ul class="point-list pink">
+              <li>صياغة التعليمات بطريقة إيجابية تحدد أنماط السلوك المراد الالتزام بها</li>
+              <li>تذكير الطفل باستمرار بالتعليمات ومراجعة القواعد كلما أمكن ذلك</li>
+              <li>إرفاق صور توضح التعليمات وعرض القواعد في مكان واضح ومرئي</li>
+              <li>إشراك الطفل قدر الإمكان في وضع التعليمات والقواعد الصفية</li>
+              <li>شرح التوقعات حول سلوك الطفل في المواقف المختلفة</li>
+              <li>عرض عدد محدود من التعليمات ليتمكن الأطفال من استيعابها</li>
+              <li>أن تكون التعليمات واقعية وعادلة ومناسبة وتمتاز بالمرونة</li>
+            </ul>
+            <button class="read-btn" onclick="markRead(2)">✅ أتممت القراءة — +30 XP</button>
+          </div>
+        </div>
+
+        <div class="acc-item" data-id="3">
+          <div class="acc-header" onclick="toggleAcc(3)">
+            <div class="acc-icon" style="background:rgba(186,117,23,0.2);">💛</div>
+            <div class="acc-title">ثالثاً: المناخ العاطفي والاجتماعي</div>
+            <div class="acc-chevron">▼</div>
+          </div>
+          <div class="acc-body">
+            <p>لا يستطيع المعلم إدارة صف لا تسوده العلاقات الإنسانية السوية والمناخ النفسي الاجتماعي المتسم بالمودة والتراحم والوئام.</p>
+            <h4>كيف يبني المعلم المناخ العاطفي الإيجابي:</h4>
+            <ul class="point-list amber">
+              <li>خلق جو من المحبة والألفة مع الأطفال وبينهم</li>
+              <li>التعاطف والحرص على مشاعر الأطفال واحترامهم</li>
+              <li>أن تكون المعلمة قدوة حسنة في السلوك والتعامل</li>
+              <li>مراعاة الفروق الفردية وتجنب النقد أو المنافسات غير المتوافقة مع قدراتهم</li>
+              <li>استخدام التعزيز الفعال في المواقف المختلفة</li>
+              <li>الإنصات الفعال للأطفال</li>
+            </ul>
+            <h4>🌟 مواصفات معلم ذوي الاحتياجات الخاصة المثالي:</h4>
+            <ul class="point-list teal">
+              <li>حب الأطفال بشكل عام وذوي الاحتياجات الخاصة بشكل خاص</li>
+              <li>المرونة وتقبل التغيير وقبول المساعدة</li>
+              <li>الاطلاع الواسع والسعي الدائم لتطوير الذات</li>
+              <li>مهارات ابتكارية واستراتيجيات متنوعة للتعامل مع المواقف المختلفة</li>
+              <li>الطبيعة المرحة والضبط الانفعالي</li>
+              <li>معرفة الأطفال جيداً وخصائصهم المختلفة</li>
+              <li>العلاقة الإيجابية مع أسر الأطفال والتواصل معهم</li>
+            </ul>
+            <button class="read-btn" onclick="markRead(3)">✅ أتممت القراءة — +30 XP</button>
+          </div>
+        </div>
+
+        <div class="acc-item" data-id="4">
+          <div class="acc-header" onclick="toggleAcc(4)">
+            <div class="acc-icon" style="background:rgba(55,138,221,0.2);">🎯</div>
+            <div class="acc-title">رابعاً: إدارة الخبرات التعليمية</div>
+            <div class="acc-chevron">▼</div>
+          </div>
+          <div class="acc-body">
+            <p>عندما يعد المعلم البيئة الصفية ويوفر الوسائل والإمكانات، يصبح تقديم الخبرة التعليمية أمراً ميسوراً. المهم هو تحديد الاستراتيجية المناسبة لتنفيذ النشاط وإثارة دافعية الأطفال.</p>
+            <h4>العوامل المؤثرة في اختيار الاستراتيجية:</h4>
+            <ul class="point-list blue">
+              <li>طبيعة الأهداف والمادة التعليمية</li>
+              <li>خصائص المتعلمين وقدراتهم</li>
+              <li>خبرات المعلم واتجاهاته الشخصية</li>
+            </ul>
+            <h4>استراتيجيات التعليم والتعلم المتاحة:</h4>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+              <span class="tag purple">التعليم المباشر</span>
+              <span class="tag teal">التعليم بالاكتشاف</span>
+              <span class="tag coral">الحوار والمناقشة</span>
+              <span class="tag amber">الوسائل السمعية والبصرية</span>
+              <span class="tag purple">التعليم الابتكاري</span>
+              <span class="tag teal">التعليم الفردي</span>
+              <span class="tag coral">التعليم بالفريق</span>
+            </div>
+            <button class="read-btn" onclick="markRead(4)">✅ أتممت القراءة — +30 XP</button>
+          </div>
+        </div>
+
+        <div class="acc-item" data-id="5">
+          <div class="acc-header" onclick="toggleAcc(5)">
+            <div class="acc-icon" style="background:rgba(216,90,48,0.2);">🧠</div>
+            <div class="acc-title">خامساً: إدارة سلوك المتعلم</div>
+            <div class="acc-chevron">▼</div>
+          </div>
+          <div class="acc-body">
+            <p>سلوك الأطفال داخل الصف عامل هام في التحكم بالعملية التعليمية، وحين يفشل المعلم في التعامل مع السلوكيات غير المناسبة قد يقف عاجزاً أمام تحقيق أهدافه.</p>
+            <h4>ما يجب أن يعيه المعلم عن السلوك:</h4>
+            <ul class="point-list coral">
+              <li>السلوك الإنساني (إيجابياً أو سلبياً) هو متعلَّم وبالتالي قابل للتعديل</li>
+              <li>هناك معايير للتفريق بين السلوك السوي وغير السوي: شدته، تكراره، زمن ظهوره</li>
+              <li>هناك عوامل وأسباب تؤدي للسلوك: ما يحدث قبله أو أثناءه أو بعده</li>
+              <li>قد يكون الجهل بالسلوك المطلوب أحد أسباب السلوك الخاطئ</li>
+              <li>قد يكون السلوك ناتجاً عن تقليد خاطئ للغير</li>
+              <li>قد يكون ناتجاً عن توقعات سلبية من المعلم أو الأسرة</li>
+              <li>أهم طرق تعديل السلوك: التعزيز، أساليب خفض السلوك، التشكيل</li>
+              <li>أسوأ الطرق: القرارات المندفعة والشخصية من المعلم</li>
+            </ul>
+            <button class="read-btn" onclick="markRead(5)">✅ أتممت القراءة — +30 XP</button>
+          </div>
+        </div>
+
+        <div class="acc-item" data-id="6">
+          <div class="acc-header" onclick="toggleAcc(6)">
+            <div class="acc-icon" style="background:rgba(99,153,34,0.2);">⏰</div>
+            <div class="acc-title">سادساً: إدارة الوقت</div>
+            <div class="acc-chevron">▼</div>
+          </div>
+          <div class="acc-body">
+            <p>المقصود بالوقت هنا هو البرنامج الفردي أو الأنشطة التعليمية الفردية. يتم تحديد وقت النشاط مسبقاً من إدارة المدرسة ويبقى على المعلمة إدارة هذا الوقت بكفاءة.</p>
+            <h4>توزيع زمن النشاط يشمل:</h4>
+            <ul class="point-list" style="--c:rgba(99,153,34,0.5)">
+              <li style="border-right-color:rgba(99,153,34,0.5)">التهيئة للنشاط</li>
+              <li style="border-right-color:rgba(99,153,34,0.5)">عرض مفاهيم النشاط</li>
+              <li style="border-right-color:rgba(99,153,34,0.5)">تلخيص ومراجعة النشاط</li>
+              <li style="border-right-color:rgba(99,153,34,0.5)">تقييم استيعاب الطفل للنشاط</li>
+            </ul>
+            <h4>ما يجب تجنبه للحفاظ على وقت النشاط:</h4>
+            <ul class="point-list coral">
+              <li>الاسترسال بعيداً عن الموضوع</li>
+              <li>الخروج والتشتت</li>
+              <li>الانشغال بأمور جانبية</li>
+            </ul>
+            <button class="read-btn" onclick="markRead(6)">✅ أتممت القراءة — +30 XP</button>
+          </div>
+        </div>
+
+        <div class="acc-item" data-id="7">
+          <div class="acc-header" onclick="toggleAcc(7)">
+            <div class="acc-icon" style="background:rgba(212,83,126,0.2);">🏠</div>
+            <div class="acc-title">الأوضاع التعليمية لذوي الاحتياجات الخاصة</div>
+            <div class="acc-chevron">▼</div>
+          </div>
+          <div class="acc-body">
+            <p>تتوفر لذوي الاحتياجات الخاصة بدائل تربوية عديدة ومرنة تتلاءم مع احتياجاتهم المتغيرة.</p>
+            <h4>🏫 الصف العادي (الدمج):</h4>
+            <ul class="point-list pink">
+              <li>الطفل ملزم بقبول وضع الفصل كما أعده معلم الفصل العادي</li>
+              <li>قد يكون مناسباً أو غير مناسب للطفل</li>
+              <li>يجب التنسيق بين معلم التربية الخاصة ومعلم الفصل قبل الدمج</li>
+            </ul>
+            <h4>🎓 الصف الخاص:</h4>
+            <ul class="point-list teal">
+              <li>يعده معلم التربية الخاصة ليتوافق مع حاجات الأطفال وخصائصهم</li>
+              <li>مثال: التوحد يحتاج تنظيماً يعتمد التعليم المنظم — يختلف عن فصول المعاقين عقلياً</li>
+            </ul>
+            <h4>📚 غرفة المصادر:</h4>
+            <ul class="point-list amber">
+              <li>غرفة من إعداد معلمين مؤهلين في التربية الخاصة داخل المدرسة العادية</li>
+              <li>منظمة على هيئة أركان: ركن القراءة والكتابة، الرياضيات، الألعاب التعليمية، الوسائل المرئية...</li>
+              <li>تخدم جميع الأطفال المدمجين في الفصول العادية الذين لديهم احتياجات لا يمكن تلبيتها في الفصل العادي</li>
+            </ul>
+            <button class="read-btn" onclick="markRead(7)">✅ أتممت القراءة — +30 XP</button>
+          </div>
+        </div>
+
+        <div class="acc-item" data-id="8">
+          <div class="acc-header" onclick="toggleAcc(8)">
+            <div class="acc-icon" style="background:rgba(127,119,221,0.2);">⚙️</div>
+            <div class="acc-title">أساليب التعليم — فئات التربية الخاصة والمبادئ العامة</div>
+            <div class="acc-chevron">▼</div>
+          </div>
+          <div class="acc-body">
+            <p><strong style="color:#AFA9EC">ذوو الاحتياجات الخاصة</strong>: هم الذين يختلفون عن الأشخاص العاديين اختلافاً ملحوظاً ومستمراً أو متكرراً مما يحد من قدرتهم على النجاح في الأنشطة الاجتماعية والتربوية والشخصية.</p>
+            <h4>فئات التربية الخاصة الثماني:</h4>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin:8px 0;">
+              <span class="tag purple">الإعاقة العقلية</span>
+              <span class="tag teal">الإعاقة السمعية</span>
+              <span class="tag coral">الإعاقة الجسدية</span>
+              <span class="tag amber">الإعاقة الانفعالية</span>
+              <span class="tag pink">الإعاقة البصرية</span>
+              <span class="tag purple">صعوبات التعلم</span>
+              <span class="tag teal">الاضطرابات الكلامية واللغوية</span>
+              <span class="tag coral">التفوق العقلي</span>
+            </div>
+            <h4>المبادئ العامة في تعليم ذوي الاحتياجات الخاصة:</h4>
+            <ul class="point-list">
+              <li>استخدام التعليم المنظم والموجه</li>
+              <li>التركيز على التدريب الأكاديمي وتوجيه الأطفال للاستجابة للمهمة</li>
+              <li>تزويد الأطفال بالفرص الكافية للنجاح عبر التعليم المستمر</li>
+              <li>تزويد الأطفال بالتغذية الراجعة الفورية</li>
+              <li>تهيئة الظروف الإيجابية والممتعة والمنتجة للتعلم</li>
+              <li>استثارة دافعية الأطفال بالتشجيع والتعزيز الإيجابي</li>
+              <li>ضمان انتباه الأطفال باستخدام المثيرات اللفظية والحسية والإيمائية</li>
+            </ul>
+            <button class="read-btn" onclick="markRead(8)">✅ أتممت القراءة — +30 XP</button>
+          </div>
+        </div>
+
+        <div class="acc-item" data-id="9">
+          <div class="acc-header" onclick="toggleAcc(9)">
+            <div class="acc-icon" style="background:rgba(29,158,117,0.2);">🔧</div>
+            <div class="acc-title">أساليب تعليم المهارات المختلفة والمعوقين عقلياً</div>
+            <div class="acc-chevron">▼</div>
+          </div>
+          <div class="acc-body">
+            <h4>1. المهارات اللغوية:</h4>
+            <ul class="point-list teal">
+              <li>وفر فرصة التفاعل مع الآخرين — والتدريب اللغوي الطبيعي الواقعي</li>
+              <li>عرّف الطفل بمختلف المعاني لكل كلمة — علّم في أجواء ممتعة</li>
+            </ul>
+            <h4>2. المهارات الاجتماعية:</h4>
+            <ul class="point-list purple">
+              <li>قدّم النموذج المناسب ولا تستخدم العقاب</li>
+              <li>استخدم الإجراءات الوقائية ولا تنتظر حدوث المشكلة</li>
+            </ul>
+            <h4>3. المهارات الحركية:</h4>
+            <ul class="point-list coral">
+              <li>علّم تدريجياً على شكل إنجازات صغيرة — استخدم التلقين اللفظي والبصري والجسدي</li>
+            </ul>
+            <h4>🧩 أساليب تعليم المعوقين عقلياً:</h4>
+            <ul class="point-list amber">
+              <li><strong style="color:#FAC775">تحليل المهمات:</strong> تحليل المهمة إلى مكوناتها بطريقة منظمة متتابعة لا ينتقل فيها المتعلم من خطوة لأخرى إلا بعد إتقان السابقة</li>
+              <li><strong style="color:#FAC775">تشكيل السلوك:</strong> تعزيز الخطوات الفرعية التي تقترب تدريجياً من السلوك النهائي</li>
+              <li><strong style="color:#FAC775">الحث:</strong> مثير تمييزي يحفز الاستجابة — ثلاثة أنواع: لفظي، إيحائي، جسمي</li>
+              <li><strong style="color:#FAC775">تقليل المساعدة التدريجي:</strong> تقليل المساعدة تدريجياً ليعتمد المتعلم على نفسه</li>
+              <li><strong style="color:#FAC775">تسلسل السلوك:</strong> ربط أشكال السلوك المتتابعة معاً ثم تعزيز السلوك النهائي</li>
+              <li><strong style="color:#FAC775">النمذجة:</strong> تعلم استجابات جديدة بمراقبة الأنموذج أو تقليده — حية، مصورة، فردية، جماعية</li>
+              <li><strong style="color:#FAC775">التعزيز الإيجابي:</strong> الأحداث السارة التي تعزز تكرار الاستجابة المرغوبة</li>
+            </ul>
+            <button class="read-btn" onclick="markRead(9)">✅ أتممت القراءة — +30 XP</button>
+          </div>
+        </div>
+
+        <div class="acc-item" data-id="10">
+          <div class="acc-header" onclick="toggleAcc(10)">
+            <div class="acc-icon" style="background:rgba(55,138,221,0.2);">⭐</div>
+            <div class="acc-title">أنواع المعززات وأساليب جذب الانتباه</div>
+            <div class="acc-chevron">▼</div>
+          </div>
+          <div class="acc-body">
+            <h4>أنواع المعززات الإيجابية:</h4>
+            <ul class="point-list blue">
+              <li><strong style="color:#85B7EB">المعززات الأولية:</strong> مرتبطة بالحاجات الأساسية كالطعام والشراب</li>
+              <li><strong style="color:#85B7EB">المعززات الاجتماعية:</strong> لفظية (أحسنت، شكراً) وغير لفظية (ابتسامة، اتصال بصري) ورمزية (نجوم، درجات)</li>
+              <li><strong style="color:#85B7EB">المعززات النشاطية:</strong> أنشطة يحبها الطفل كالرسم والعزف والرحلات</li>
+              <li><strong style="color:#85B7EB">المعززات المادية:</strong> ألعاب، بالون، أقلام رصاص</li>
+              <li><strong style="color:#85B7EB">المعززات الجماعية:</strong> تعزيز مجموعة كاملة لتشجيع المسؤولية الجماعية</li>
+            </ul>
+            <h4>لزيادة فعالية التعزيز:</h4>
+            <ul class="point-list teal">
+              <li>عرّفي السلوك الذي ستعززيه إجرائياً</li>
+              <li>كافئي السلوك بعد حدوثه مباشرة</li>
+              <li>استخدمي أشكالاً وأنواعاً مختلفة من المعززات</li>
+              <li>اختاري المعزز المناسب للطفل في ضوء ملاحظتك له</li>
+            </ul>
+            <h4>أساليب جذب الانتباه والاحتفاظ به:</h4>
+            <ul class="point-list coral">
+              <li>رواية قصة — استخدام إشارات صوتية (جرس، صفارة) وإشارات مرئية</li>
+              <li>التواصل بالعين — استخدام أسماء الأطفال وكروت الأسماء</li>
+              <li>استخدام إستراتيجيات تخاطب الحواس المختلفة أثناء إعطاء التعليمات</li>
+              <li>تقليل كلام المعلمة وتكثير كلام الأطفال</li>
+              <li>استخدام إستراتيجية "أخبر زميلك" بدلاً من سؤال كل الأطفال</li>
+              <li>التغذية الراجعة الفورية والتعزيز</li>
+            </ul>
+            <button class="read-btn" onclick="markRead(10)">✅ أتممت القراءة — +30 XP</button>
+          </div>
+        </div>
+
+      </div>
+      <button class="complete-phase-btn" id="completePhase1Btn" onclick="completePhase1()" disabled>
+        🚀 أكملت الاستكشاف! انتقل للخريطة الذهنية
+      </button>
+    </div>
+
+    <!-- PHASE 2 -->
+    <div class="phase" id="phase2">
+      <div class="phase-title">🗺️ الخريطة الذهنية التفاعلية <span>اسحب للتنقل، اضغط العقد للتفاصيل</span></div>
+      <div class="mindmap-wrap" id="mindmapWrap">
+        <svg id="mindmapSvg" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <!-- connections -->
+          <g stroke="rgba(255,255,255,0.12)" stroke-width="1.5" fill="none">
+            <line x1="400" y1="250" x2="400" y2="130"/>
+            <line x1="400" y1="250" x2="200" y2="170"/>
+            <line x1="400" y1="250" x2="120" y2="290"/>
+            <line x1="400" y1="250" x2="200" y2="370"/>
+            <line x1="400" y1="250" x2="400" y2="400"/>
+            <line x1="400" y1="250" x2="600" y2="370"/>
+            <line x1="400" y1="250" x2="680" y2="290"/>
+            <line x1="400" y1="250" x2="600" y2="170"/>
+          </g>
+          <!-- center -->
+          <g class="mindmap-node" onclick="showNodeInfo('center')">
+            <ellipse cx="400" cy="250" rx="72" ry="40" fill="rgba(127,119,221,0.35)" stroke="#7F77DD" stroke-width="2"/>
+            <text x="400" y="244" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">إدارة البيئة</text>
+            <text x="400" y="260" text-anchor="middle" fill="#AFA9EC" font-size="10">التعليمية</text>
+          </g>
+          <!-- nodes -->
+          <g class="mindmap-node" onclick="showNodeInfo('physical')">
+            <rect x="340" y="96" width="120" height="38" rx="10" fill="rgba(29,158,117,0.25)" stroke="#1D9E75" stroke-width="1.5"/>
+            <text x="400" y="119" text-anchor="middle" fill="#5DCAA5" font-size="10" font-weight="600">البيئة الفيزيقية</text>
+          </g>
+          <g class="mindmap-node" onclick="showNodeInfo('rules')">
+            <rect x="122" y="146" width="120" height="38" rx="10" fill="rgba(212,83,126,0.25)" stroke="#D4537E" stroke-width="1.5"/>
+            <text x="182" y="169" text-anchor="middle" fill="#ED93B1" font-size="10" font-weight="600">القواعد والنظام</text>
+          </g>
+          <g class="mindmap-node" onclick="showNodeInfo('emotional')">
+            <rect x="42" y="265" width="120" height="38" rx="10" fill="rgba(186,117,23,0.25)" stroke="#BA7517" stroke-width="1.5"/>
+            <text x="102" y="288" text-anchor="middle" fill="#FAC775" font-size="10" font-weight="600">المناخ العاطفي</text>
+          </g>
+          <g class="mindmap-node" onclick="showNodeInfo('experience')">
+            <rect x="122" y="346" width="120" height="38" rx="10" fill="rgba(55,138,221,0.25)" stroke="#378ADD" stroke-width="1.5"/>
+            <text x="182" y="369" text-anchor="middle" fill="#85B7EB" font-size="10" font-weight="600">الخبرات التعليمية</text>
+          </g>
+          <g class="mindmap-node" onclick="showNodeInfo('time')">
+            <rect x="340" y="382" width="120" height="38" rx="10" fill="rgba(99,153,34,0.25)" stroke="#639922" stroke-width="1.5"/>
+            <text x="400" y="405" text-anchor="middle" fill="#97C459" font-size="10" font-weight="600">إدارة الوقت</text>
+          </g>
+          <g class="mindmap-node" onclick="showNodeInfo('behavior')">
+            <rect x="558" y="346" width="120" height="38" rx="10" fill="rgba(216,90,48,0.25)" stroke="#D85A30" stroke-width="1.5"/>
+            <text x="618" y="369" text-anchor="middle" fill="#F0997B" font-size="10" font-weight="600">إدارة السلوك</text>
+          </g>
+          <g class="mindmap-node" onclick="showNodeInfo('settings')">
+            <rect x="638" y="265" width="120" height="38" rx="10" fill="rgba(127,119,221,0.25)" stroke="#7F77DD" stroke-width="1.5"/>
+            <text x="698" y="288" text-anchor="middle" fill="#AFA9EC" font-size="10" font-weight="600">الأوضاع التعليمية</text>
+          </g>
+          <g class="mindmap-node" onclick="showNodeInfo('methods')">
+            <rect x="558" y="146" width="120" height="38" rx="10" fill="rgba(212,83,126,0.25)" stroke="#D4537E" stroke-width="1.5"/>
+            <text x="618" y="169" text-anchor="middle" fill="#ED93B1" font-size="10" font-weight="600">أساليب التعليم</text>
+          </g>
+        </svg>
+      </div>
+      <div class="mindmap-hint">اضغط على أي عقدة لعرض تفاصيلها 👆</div>
+      <div id="nodeInfo" style="display:none;margin-top:1rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px;"></div>
+      <button class="complete-phase-btn" style="margin-top:1rem;" onclick="completePhase2()">🏆 جاهز للتحدي الكبير! — 60 سؤال</button>
+    </div>
+
+    <!-- PHASE 3 -->
+    <div class="phase" id="phase3">
+      <div class="phase-title">🏆 التحدي الكبير <span>60 سؤال متنوع</span></div>
+      <div class="quiz-header">
+        <div>🏆</div>
+        <div>
+          <div style="color:#fff;font-size:0.85rem;font-weight:600;">تحدي الفصل الثالث</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:11px;">60 سؤال شاملة</div>
+        </div>
+        <div class="quiz-score-wrap">
+          <div class="quiz-score" id="scoreDisplay">0</div>
+          <div class="quiz-score-sub">/ <span id="scoreDenom">0</span> نقطة</div>
+        </div>
+      </div>
+      <div class="q-tabs">
+        <div class="q-tab active" onclick="filterQ('all')">الكل (60)</div>
+        <div class="q-tab" onclick="filterQ('mcq')">اختيار متعدد (40)</div>
+        <div class="q-tab" onclick="filterQ('essay')">مقالي (20)</div>
+      </div>
+      <div class="questions-grid" id="questionsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let xp = 0;
+let readSections = new Set();
+let answeredQ = 0;
+let correctQ = 0;
+let phase1Done = false;
+let phase2Done = false;
+let currentPhase = 1;
+
+function addXP(amount, msg) {
+  xp += amount;
+  const max = 1800;
+  document.getElementById('xpFill').style.width = Math.min(100, (xp/max)*100) + '%';
+  document.getElementById('xpVal').textContent = xp + ' / ' + max;
+  document.getElementById('statLevel').textContent = Math.floor(xp/200) + 1;
+  showToast((msg || '') + ' +' + amount + ' XP ⚡');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function toggleAcc(id) {
+  const items = document.querySelectorAll('.acc-item');
+  const item = items[id];
+  const isOpen = item.classList.contains('open');
+  items.forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+function markRead(id) {
+  if (readSections.has(id)) return;
+  readSections.add(id);
+  document.querySelectorAll('.acc-item')[id].classList.add('read');
+  const btn = document.querySelectorAll('.read-btn')[id];
+  btn.textContent = '✅ تمت القراءة!';
+  btn.classList.add('done');
+  btn.disabled = true;
+  addXP(30, '📖 فقرة مقروءة');
+  document.getElementById('statSections').textContent = readSections.size;
+  if (readSections.size >= 5) {
+    document.getElementById('completePhase1Btn').disabled = false;
+  }
+}
+
+function completePhase1() {
+  phase1Done = true;
+  document.getElementById('lvl2Btn').classList.remove('locked');
+  switchPhase(2);
+  addXP(100, '🎉 أكملت المرحلة الأولى');
+}
+
+function completePhase2() {
+  phase2Done = true;
+  document.getElementById('lvl3Btn').classList.remove('locked');
+  switchPhase(3);
+  addXP(100, '🗺️ أتقنت الخريطة الذهنية');
+  renderQuestions();
+}
+
+function switchPhase(n) {
+  if (n === 2 && !phase1Done) { showToast('⚠️ أكمل المرحلة الأولى أولاً!'); return; }
+  if (n === 3 && !phase2Done) { showToast('⚠️ أكمل الخريطة الذهنية أولاً!'); return; }
+  currentPhase = n;
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.getElementById('phase' + n).classList.add('active');
+  document.querySelectorAll('.level-btn').forEach((b, i) => {
+    b.classList.toggle('active', i+1 === n);
+  });
+}
+
+const nodeInfoData = {
+  center: { title: 'إدارة البيئة التعليمية', color: '#7F77DD', desc: 'كل ما يقوم به المعلم داخل غرفة الصف لتحقيق الأهداف التربوية وإحداث تغيير مناسب في سلوك الطفل. تشمل ستة محاور رئيسية.' },
+  physical: { title: 'البيئة الفيزيقية المادية', color: '#1D9E75', desc: 'تنظيم الفضاء الصفي: الأثاث، الإضاءة، التهوية، التحكم في المشتتات، الأركان، التخزين. علاقة قوية بين ترتيب المكان وسلوك الطفل.' },
+  rules: { title: 'القواعد والنظام الصفي', color: '#D4537E', desc: 'صياغة إيجابية، مراجعة مستمرة، صور توضيحية، إشراك الأطفال، عدد محدود وواقعي ومرن.' },
+  emotional: { title: 'المناخ العاطفي والاجتماعي', color: '#BA7517', desc: 'المحبة، التعاطف، القدوة الحسنة، مراعاة الفروق الفردية، التعزيز، الإنصات الفعال.' },
+  experience: { title: 'الخبرات التعليمية', color: '#378ADD', desc: '7 استراتيجيات: مباشر، اكتشاف، حوار، وسائل سمعية-بصرية، ابتكاري، فردي، بالفريق.' },
+  time: { title: 'إدارة الوقت', color: '#639922', desc: 'توزيع زمن النشاط: التهيئة، العرض، التلخيص، التقييم. تجنب الاسترسال والتشتت.' },
+  behavior: { title: 'إدارة سلوك المتعلم', color: '#D85A30', desc: 'السلوك متعلَّم وقابل للتعديل. طرق التعديل: التعزيز، خفض السلوك، التشكيل. تجنب القرارات المندفعة.' },
+  settings: { title: 'الأوضاع التعليمية', color: '#7F77DD', desc: 'ثلاثة بدائل: الصف العادي (الدمج)، الصف الخاص، غرفة المصادر — كل منها بتنظيم وإدارة مختلفة.' },
+  methods: { title: 'أساليب التعليم', color: '#D4537E', desc: '7 أساليب لذوي الاحتياجات: تحليل المهمات، تشكيل السلوك، الحث، تقليل المساعدة، تسلسل السلوك، النمذجة، التعزيز.' }
+};
+
+function showNodeInfo(key) {
+  const d = nodeInfoData[key];
+  if (!d) return;
+  const el = document.getElementById('nodeInfo');
+  el.style.display = 'block';
+  el.innerHTML = `<div style="color:${d.color};font-size:0.9rem;font-weight:700;margin-bottom:6px;">${d.title}</div><p style="color:rgba(255,255,255,0.75);font-size:0.85rem;line-height:1.7;">${d.desc}</p>`;
+  addXP(5, '🗺️ استكشاف عقدة');
+}
+
+const mcqQ = [
+  { q: 'ما المقصود بإدارة البيئة التعليمية؟', opts: ['تنظيم الجداول الدراسية فقط', 'كل الخطوات والإجراءات اللازمة لبناء بيئة صفية مناسبة', 'إدارة الوقت داخل الصف فقط', 'إعداد الوسائل التعليمية'], ans: 1 },
+  { q: 'كم عدد محاور إدارة البيئة الصفية الواردة في الفصل؟', opts: ['أربعة', 'خمسة', 'ستة', 'سبعة'], ans: 2 },
+  { q: 'ما العلاقة بين ترتيب المكان وسلوك الطفل وفق الدراسات؟', opts: ['لا علاقة بينهما', 'علاقة ضعيفة', 'علاقة قوية', 'علاقة عكسية دائماً'], ans: 2 },
+  { q: 'لماذا يُستخدم السجاد ذو اللون الساده في فصول ذوي الاحتياجات الخاصة؟', opts: ['للزينة فقط', 'لامتصاص الأصوات والتشويش', 'لتمييز مناطق اللعب', 'لمنع سقوط الأطفال'], ans: 1 },
+  { q: 'ما الهدف من تغطية الأبواب والنوافذ في الفصل؟', opts: ['الحفاظ على درجة الحرارة', 'تقليل الضوضاء', 'منع الانشغال خارج الفصل وتقليل فرص الخروج', 'الزينة والديكور'], ans: 2 },
+  { q: 'من المسؤول عن إعداد الصف الخاص لذوي الاحتياجات الخاصة؟', opts: ['مدير المدرسة', 'معلم الفصل العادي', 'معلم التربية الخاصة', 'ولي الأمر'], ans: 2 },
+  { q: 'ما البديل التعليمي الذي يستخدم أركاناً متخصصة داخل المدرسة العادية؟', opts: ['الصف العادي', 'الصف الخاص', 'غرفة المصادر', 'مدرسة التربية الخاصة'], ans: 2 },
+  { q: 'أي من التالي ليس من أنواع الحث في تعليم المعوقين عقلياً؟', opts: ['الحث اللفظي', 'الحث الإيحائي', 'الحث الجسمي', 'الحث البصري'], ans: 3 },
+  { q: 'ما الفرق الجوهري بين تشكيل السلوك وتسلسل السلوك؟', opts: ['لا فرق بينهما', 'تشكيل السلوك يتعامل مع سلوك واحد بينما تسلسل السلوك يتعامل مع حلقات مترابطة', 'تسلسل السلوك أحدث من تشكيله', 'تشكيل السلوك للكبار وتسلسله للصغار'], ans: 1 },
+  { q: 'ما أنواع النمذجة المذكورة في الفصل؟', opts: ['حية ومصورة فقط', 'فردية وجماعية فقط', 'حية، مصورة، مقصودة، غير مقصودة، فردية، جماعية', 'لفظية وغير لفظية'], ans: 2 },
+  { q: 'ما المقصود بالتعزيز الإيجابي؟', opts: ['العقوبة التي تمنع السلوك السيئ', 'الأحداث السارة التي تلي الاستجابة المرغوبة وتعمل على تكرار ظهورها', 'المكافأة المادية فقط', 'الثناء اللفظي فقط'], ans: 1 },
+  { q: 'كم فئة تشمل التربية الخاصة وفق الفصل؟', opts: ['ست فئات', 'سبع فئات', 'ثماني فئات', 'عشر فئات'], ans: 2 },
+  { q: 'ما العنصران الرئيسيان لأسلوب التدريب الأكاديمي في المبادئ العامة؟', opts: ['التشجيع والمكافأة', 'توجيه الأطفال للاستجابة للمهمة وتحديد أهداف مناسبة', 'التقييم والاختبار', 'التعليم الجمعي والتنافس'], ans: 1 },
+  { q: 'من أفضل طرق تعديل السلوك وفق الفصل؟', opts: ['العقاب الفوري', 'التعزيز، أساليب خفض السلوك، التشكيل', 'التجاهل التام', 'الإقصاء من الصف'], ans: 1 },
+  { q: 'متى يُستخدم التعزيز المتقطع وفق الفصل؟', opts: ['في بداية تعليم المهارة', 'دائماً مع جميع الأطفال', 'بعد بلوغ مستوى قبول من الإتقان', 'مع الأطفال الأكبر سناً فقط'], ans: 2 },
+  { q: 'ما استراتيجية جذب الانتباه التي تقلل كلام المعلمة وتزيد كلام الأطفال؟', opts: ['التواصل بالعين', '"أخبر زميلك" بدلاً من سؤال كل الأطفال', 'رواية قصة', 'استخدام الصور'], ans: 1 },
+  { q: 'ما المحاور الثلاثة التي يعتمدها اختيار أساليب التدريب؟', opts: ['العمر، الذكاء، الجنس', 'فئة الإعاقة، شدة الإعاقة، العمر الزمني', 'البيئة، الأسرة، المدرسة', 'المادة، الأهداف، الوسائل'], ans: 1 },
+  { q: 'ما المنحى العام الذي تستند إليه أساليب التعليم في التربية الخاصة؟', opts: ['المنحى التقليدي', 'المنحى التشخيصي العلاجي', 'المنحى الاجتماعي', 'المنحى النفسي'], ans: 1 },
+  { q: 'ما العناصر الثلاثة الأساسية للهدف السلوكي في نموذج تدريب المهارات؟', opts: ['المعرفة، المهارة، الاتجاه', 'السلوك، المعيار، الظروف', 'الهدف، المحتوى، التقييم', 'الطالب، المعلم، البيئة'], ans: 1 },
+  { q: 'ما الفرق بين التعليم الفردي وتعليم طفل واحد؟', opts: ['لا فرق بينهما إطلاقاً', 'التعليم الفردي يراعي الفروق الفردية وقد يُنفَّذ في مجموعات صغيرة أو بمساعدة الحاسوب', 'تعليم طفل واحد أفضل دائماً', 'التعليم الفردي للموهوبين فقط'], ans: 1 },
+  { q: 'ما أول خطوة في التعليم الجيد لذوي الاحتياجات الخاصة؟', opts: ['تحديد الأهداف التدريبية', 'فهم المعلم للخصائص الفردية للطفل', 'اختيار الوسائل', 'تنفيذ البرنامج'], ans: 1 },
+  { q: 'أي من التالي مثال على معزز اجتماعي غير لفظي؟', opts: ['كلمة "أحسنت"', 'النجوم والدرجات', 'الابتسامة والاتصال البصري', 'الطعام والشراب'], ans: 2 },
+  { q: 'ما الغرض من أسلوب تقليل المساعدة التدريجي؟', opts: ['تعليم مهارات جديدة أسرع', 'جعل المتعلم يعتمد على نفسه في أداء المهارة', 'تقليل تكلفة التعليم', 'مكافأة الطفل على إنجازاته'], ans: 1 },
+  { q: 'ما أسلوب تحليل المهمات؟', opts: ['أسلوب يعزز السلوك النهائي مباشرة', 'تحليل المهمة إلى خطوات منظمة متتابعة لا يُنتقل فيها إلى التالية إلا بعد إتقان السابقة', 'مجرد شرح المهمة للطفل', 'مراقبة أداء الطفل دون تدخل'], ans: 1 },
+  { q: 'ما الوضع الأنسب لاستخدام التعزيز المادي الغذائي وفق الفصل؟', opts: ['مع جميع الأطفال دائماً', 'مع الأطفال الأكبر سناً', 'مع الأطفال الصغار جداً أو إذا كانت المعززات الأخرى لا قيمة لها', 'لا يُستخدم أبداً لأضراره'], ans: 2 },
+  { q: 'ما مبدأ تشكيل السلوك الأساسي؟', opts: ['تعزيز السلوك النهائي فقط من البداية', 'تعزيز الخطوات الفرعية التي تقترب تدريجياً من السلوك النهائي', 'تجاهل السلوك الخاطئ', 'العقاب على كل خطأ'], ans: 1 },
+  { q: 'ما الفئة التي تحتاج تنظيماً صفياً يعتمد أسلوب التعليم المنظم بشكل خاص؟', opts: ['الإعاقة السمعية', 'التوحد', 'صعوبات التعلم', 'التفوق العقلي'], ans: 1 },
+  { q: 'متى يجب التنسيق بين معلم التربية الخاصة ومعلم الفصل العادي؟', opts: ['بعد دمج الطفل', 'قبل دمج الطفل في الفصول العادية', 'في نهاية العام الدراسي', 'لا حاجة للتنسيق'], ans: 1 },
+  { q: 'ما نموذج تدريب العمليات؟', opts: ['أسلوب يعتمد على التدريس المباشر للمهارات', 'أسلوب يفترض أن المشكلات تنجم عن اضطرابات داخلية ويصمم برامج تصحيحية', 'أسلوب التعليم الجمعي', 'أسلوب حل المشكلات'], ans: 1 },
+  { q: 'ما أنواع الاضطرابات التي يعالجها نموذج تدريب العمليات؟', opts: ['عاطفية واجتماعية فقط', 'إدراكية حركية، بصرية إدراكية، نفسية لغوية، سمعية إدراكية', 'معرفية فقط', 'حركية فقط'], ans: 1 },
+  { q: 'ما التعريف الصحيح للتربية الخاصة وفق الفصل؟', opts: ['مجرد تعليم الطلاب في فصول منفصلة', 'جملة من الأساليب التعليمية الفردية المنظمة التي تهدف إلى مساعدة ذوي الحاجات الخاصة في تحقيق الكفاية الذاتية والنجاح الأكاديمي', 'برامج الرعاية الاجتماعية', 'التدريب المهني فقط'], ans: 1 },
+  { q: 'ما أسلوب الحث؟', opts: ['تقديم مثير تمييزي يحفز المتعلم على القيام بالاستجابة المطلوبة', 'إزالة المساعدة التدريجياً', 'تعزيز السلوك النهائي فقط', 'تجزئة المهمة إلى أجزاء صغيرة'], ans: 0 },
+  { q: 'ما إستراتيجية "أخبر زميلك"؟', opts: ['إجراء اختبار جماعي', 'استراتيجية لمتابعة انتباه الأطفال بدلاً من سؤال كل طفل على حدة', 'تعيين واجبات للبيت', 'أسلوب للتعزيز الجماعي'], ans: 1 },
+  { q: 'ما الأكثر أهمية للمعلم عند توزيع الوقت في نشاطه التعليمي؟', opts: ['التهيئة والعرض والتلخيص والتقييم', 'الواجبات المنزلية فقط', 'مراجعة درس اليوم السابق', 'اختبار قصير في بداية كل نشاط'], ans: 0 },
+  { q: 'ما الخطوة الأخيرة في التعليم الجيد وفق الفصل؟', opts: ['اختيار الوسائل', 'تنفيذ البرنامج', 'تقييم فاعلية التدريب في ضوء تطور أداء الطفل', 'تحديد مستوى الأداء الحالي'], ans: 2 },
+  { q: 'ما الغرض من المعززات الجماعية؟', opts: ['تقليل تكلفة التعليم', 'تشجيع الأطفال على تحمل المسؤولية الجماعية والعمل كفريق', 'مكافأة الطفل الأفضل فقط', 'التخلص من المعززات الفردية'], ans: 1 },
+  { q: 'ما المواصفة الأهم في معلم ذوي الاحتياجات الخاصة وفق الفصل؟', opts: ['الخبرة الطويلة فقط', 'الشهادة العلمية العالية', 'حب الأطفال وخاصة ذوي الاحتياجات الخاصة مع المرونة والاطلاع المستمر', 'اتقان المواد الدراسية فقط'], ans: 2 },
+  { q: 'لماذا تبقى حدود الأركان في فصل ذوي الاحتياجات الخاصة محددة وواضحة؟', opts: ['للزينة', 'لتقليل ارتباك الطفل ومساعدته على التنقل المنظم', 'لتوفير مساحة للعب', 'لا سبب محدد'], ans: 1 },
+  { q: 'ما العامل الذي يجعل معززاً ما فعالاً وفق الفصل؟', opts: ['غلاؤه وتميزه', 'أن يكون مناسباً للطفل ومرتبطاً بسلوكه', 'أن يكون غذائياً', 'أن يُقدم في نهاية اليوم'], ans: 1 },
+  { q: 'ما أحد مخاطر المعززات الغذائية وفق البحوث المذكورة في الفصل؟', opts: ['الحساسية الغذائية', 'تكوين عادات طويلة الأمد باستخدام الطعام إرضاءً للنفس وقد يؤدي للسمنة', 'الملل من الطعام', 'رفض الطفل للطعام العادي'], ans: 1 },
+];
+
+const essayQ = [
+  { q: 'عرّف إدارة البيئة الصفية مع ذكر محاورها الستة.', ans: 'إدارة البيئة الصفية: جميع الخطوات والإجراءات اللازمة لبناء والحفاظ على بيئة صفية مناسبة للتعليم والتعلم. محاورها: (1) تنظيم البيئة الفيزيقية المادية (2) حفظ النظام وبناء القواعد (3) توفير المناخ العاطفي والاجتماعي (4) إدارة الخبرات التعليمية (5) إدارة سلوك الطفل (6) إدارة الوقت.' },
+  { q: 'اذكر خمسة من متطلبات تنظيم البيئة الفيزيقية لفصل ذوي الاحتياجات الخاصة.', ans: 'أي خمسة من: طاولات وكراسي متحركة — إزالة مشتتات الانتباه — تغطية الأبواب والنوافذ — سجاد ذو لون سادة — إشارات وبطاقات لمواقع الأشياء — تهوية وإضاءة جيدة — مساحة واسعة بين المقاعد — أركان هادئة بعيدة عن الصاخبة — فصل بعيد عن الضوضاء.' },
+  { q: 'ما أهم الاستراتيجيات لبناء القواعد الصفية لذوي الاحتياجات الخاصة؟', ans: 'صياغة إيجابية — مراجعة مستمرة — إرفاق صور توضيحية — إشراك الأطفال في وضعها — شرح التوقعات — عدد محدود وواقعي — مرونة التعليمات.' },
+  { q: 'ما مواصفات معلم ذوي الاحتياجات الخاصة المثالي؟', ans: 'حب الأطفال — المرونة وقبول التغيير — الاطلاع الواسع والتطوير الذاتي — مهارات ابتكارية — الطبيعة المرحة — الضبط الانفعالي — معرفة خصائص الأطفال — العلاقة الإيجابية مع الأسر.' },
+  { q: 'ما أهمية التنسيق بين معلم التربية الخاصة ومعلم الفصل العادي قبل الدمج؟', ans: 'لأن الطفل ذو الاحتياجات الخاصة في الصف العادي يجد نفسه ملزماً بقبول وضع الفصل كما أعده معلمه. فإذا لم يكن هذا الوضع مناسباً للطفل — وهو ما يحدث أحياناً — تضرر الطفل. التنسيق المسبق يضمن إعداد بيئة تلبي احتياج الطفل قبل دمجه.' },
+  { q: 'قارن بين أسلوبَي تشكيل السلوك وتسلسل السلوك.', ans: 'تشكيل السلوك: يتعامل مع سلوك واحد يمكن تحليله إلى مهمات فرعية، ويعزز الخطوات التي تقترب تدريجياً من السلوك النهائي. تسلسل السلوك: يتعامل مع حلقات سلوك مترابطة تشكل معاً سلوكاً عاماً، ويربطها معاً ثم يعزز الاستجابة النهائية. الفرق: الأول سلوك واحد يُشكَّل، والثاني سلسلة سلوكات مترابطة.' },
+  { q: 'ما فئات التربية الخاصة الثماني؟', ans: '(1) الإعاقة العقلية (2) الإعاقة السمعية (3) الإعاقة الجسدية (4) الإعاقة الانفعالية (5) الإعاقة البصرية (6) صعوبات التعلم (7) الاضطرابات الكلامية واللغوية (8) التفوق العقلي.' },
+  { q: 'اشرح أسلوب تحليل المهمات مع ذكر خطواته.', ans: 'تحليل المهمات: أسلوب يقوم على تحليل المهمة التعليمية إلى خطوات منظمة متتابعة، لا يُنتقل فيها من خطوة إلى أخرى إلا بعد الإتقان. خطواته: (1) تحديد الهدف التعليمي (2) تحديد السلوك المدخلي للمتعلم (3) تحديد الخطوات التي تقع بين السلوك المدخلي وتحقيق الهدف.' },
+  { q: 'ما المبادئ العامة لتعليم ذوي الاحتياجات الخاصة؟', ans: '(1) التعليم المنظم والموجه (2) التركيز على التدريب الأكاديمي (3) توفير فرص النجاح (4) التغذية الراجعة الفورية (5) الظروف الإيجابية الممتعة (6) استثارة الدافعية بالتعزيز (7) ضمان الانتباه بمثيرات متنوعة.' },
+  { q: 'ما أنواع النمذجة مع تعريف مختصر لكل نوع؟', ans: 'النمذجة الحية: أنموذج حقيقي أمام الطفل. المصورة: عبر فيديو أو صور. المقصودة: بهدف تعليمي واضح. غير المقصودة: تعلم عرضي بالملاحظة. الفردية: أنموذج فرد واحد. الجماعية: مجموعة تؤدي السلوك.' },
+  { q: 'ما دور المعلمة في توفير المناخ العاطفي الإيجابي بالصف؟', ans: 'خلق جو من المحبة والألفة — التعاطف واحترام مشاعر الأطفال — أن تكون قدوة حسنة — مراعاة الفروق الفردية — استخدام التعزيز الفعال — الإنصات الفعال.' },
+  { q: 'لماذا يُعدّ التعزيز الإيجابي أهم أدوات تعليم ذوي الاحتياجات الخاصة؟', ans: 'لأنه يمثل الأحداث السارة التي تلي الاستجابة المرغوبة وتعمل على تكرار ظهورها وتقويتها. يهدف إلى: تقوية السلوك المرغوب، بناء أشكال جديدة من السلوك، وتقليل السلوك غير المرغوب. وهو فعال لأنه مرتبط باحتياج الطفل ومباشر في وقته.' },
+  { q: 'ما المعززات الجماعية وما أهميتها التربوية؟', ans: 'تعزيز مجموعة من الأطفال أو كلهم معاً لتحقيق هدف جماعي محدد مسبقاً. أهميتها: تشجيع المسؤولية الجماعية، تعزيز روح الفريق، دفع الأطفال للتعاون بدلاً من التنافس، وإنجاز مهام مشتركة.' },
+  { q: 'كيف يختلف الصف الخاص عن غرفة المصادر؟', ans: 'الصف الخاص: قاعة مستقلة معدة بالكامل من معلم التربية الخاصة، تنظيمها مبني على نوع الإعاقة الغالبة. غرفة المصادر: داخل المدرسة العادية، تخدم جميع ذوي الاحتياجات الخاصة المدمجين، منظمة على أركان متخصصة (قراءة، رياضيات، ألعاب...) ولا تستبدل الفصل العادي بل تكمله.' },
+  { q: 'اذكر خطوات التعليم الجيد لذوي الاحتياجات الخاصة (أول ست خطوات).', ans: '(1) فهم الخصائص الفردية للطفل (2) التعاون مع الوالدين والاستماع لآرائهما (3) تحديد مستوى الأداء الحالي (4) تحديد المهارات المطلوب تعلمها (5) تحديد الأهداف المرجوة (6) تجزئة الأهداف إلى أهداف فرعية صغيرة قابلة للقياس.' },
+  { q: 'ما أساليب جذب الانتباه الثلاثة الرئيسية وفق الفصل؟', ans: 'جذب الانتباه: رواية قصة، إشارات صوتية، إشارات مرئية، تواصل بالعين، استخدام أسماء الأطفال. تركيز الانتباه: استراتيجيات متعددة الحواس، صور ورسومات، تدوين النقاط. متابعة الانتباه: أشياء حقيقية، استراتيجية "أخبر زميلك"، بطاقات الاستجابة. الاحتفاظ: وضوح التعليمات، التعزيز والتغذية الراجعة الفورية.' },
+  { q: 'ما أهمية مراعاة الفروق الفردية في إدارة البيئة الصفية لذوي الاحتياجات الخاصة؟', ans: 'لأن كل طفل يختلف في طبيعة إعاقته وشدتها ومرحلة نموه وقدراته وأسلوب تعلمه. مراعاة الفروق الفردية تعني: اختيار المعزز المناسب لكل طفل، تحديد أهداف واقعية لكل فرد، توفير وسائل متنوعة، وتنظيم البيئة بما يتناسب مع احتياجات مجموعة الفصل المتنوعة.' },
+  { q: 'لماذا يُعدّ السلوك الإنساني قابلاً للتعديل وفق الفصل؟', ans: 'لأن السلوك الإنساني — سواء إيجابياً أو سلبياً — هو سلوك متعلَّم ناتج عن عوامل تسبقه أو تقترن به أو تليه. وما تعلمه الإنسان يمكنه تعلُّم غيره. لذلك يملك المعلم أدوات فعلية لتعديل السلوك غير المرغوب وتعزيز المرغوب.' },
+  { q: 'ما البدائل التربوية المتاحة لذوي الاحتياجات الخاصة؟', ans: 'بدائل تربوية متنوعة ومرنة تشمل: مؤسسات الإقامة الكاملة، المدارس الخاصة النهارية، المدارس العادية (بدمج كامل أو جزئي عبر الصف العادي أو الصف الخاص أو غرفة المصادر). البديل قابل للتغيير تبعاً لتطور أداء الطفل وسلوكه.' },
+  { q: 'ما التعليم الفردي وكيف يمكن تطبيقه عملياً؟', ans: 'التعليم الفردي: أسلوب يراعي الفروق الفردية بين المتعلمين ويتضمن تحديد أهداف طويلة وقصيرة المدى لكل طالب، ثم اختيار الوسائل وتنفيذ الجلسات التعليمية لتلبية احتياجاته الخاصة. يمكن تطبيقه: في جلسات فردية مباشرة، في مجموعات صغيرة، بمساعدة الحاسوب، أو بواسطة الرفاق.' },
+];
+
+let allQuestions = [];
+let currentFilter = 'all';
+
+function renderQuestions() {
+  allQuestions = [];
+  mcqQ.forEach((q, i) => allQuestions.push({...q, type:'mcq', idx: i}));
+  essayQ.forEach((q, i) => allQuestions.push({...q, type:'essay', idx: i}));
+  filterQ('all');
+}
+
+function filterQ(type) {
+  currentFilter = type;
+  document.querySelectorAll('.q-tab').forEach((t, i) => {
+    t.classList.toggle('active', ['all','mcq','essay'][i] === type);
+  });
+  const grid = document.getElementById('questionsGrid');
+  const toShow = type === 'all' ? allQuestions : allQuestions.filter(q => q.type === type);
+  grid.innerHTML = '';
+  let qNum = 0;
+  toShow.forEach((q) => {
+    qNum++;
+    if (q.type === 'mcq') {
+      const card = document.createElement('div');
+      card.className = 'q-card';
+      card.id = 'qcard-' + q.type + '-' + q.idx;
+      card.innerHTML = `<div class="q-num">سؤال ${qNum} — اختيار متعدد</div><div class="q-text">${q.q}</div><div class="q-options">${q.opts.map((o,oi) => `<div class="q-opt" onclick="answerMCQ('${q.type}-${q.idx}',${oi},${q.ans})">${['أ','ب','ج','د'][oi]}) ${o}</div>`).join('')}</div>`;
+      grid.appendChild(card);
+    } else {
+      const card = document.createElement('div');
+      card.className = 'flip-card';
+      card.id = 'qcard-essay-' + q.idx;
+      card.onclick = function() { flipCard(this, q.idx); };
+      card.innerHTML = `<div class="flip-inner"><div class="flip-face flip-front"><div style="color:#AFA9EC;font-size:11px;margin-bottom:8px;">سؤال ${qNum} — مقالي — اضغط للإجابة النموذجية</div><p>${q.q}</p><div class="flip-hint">👆 اضغط للقلب</div></div><div class="flip-face flip-back"><div style="color:#5DCAA5;font-size:11px;margin-bottom:8px;">الإجابة النموذجية:</div><p>${q.ans}</p></div></div>`;
+      grid.appendChild(card);
+    }
+  });
+}
+
+function answerMCQ(id, chosen, correct) {
+  const card = document.getElementById('qcard-' + id);
+  if (card.classList.contains('answered')) return;
+  card.classList.add('answered');
+  const opts = card.querySelectorAll('.q-opt');
+  opts.forEach((o, i) => {
+    o.classList.add('locked');
+    if (i === correct) o.classList.add('correct');
+    else if (i === chosen && i !== correct) o.classList.add('wrong');
+  });
+  answeredQ++;
+  document.getElementById('statAnswered').textContent = answeredQ;
+  if (chosen === correct) {
+    correctQ++;
+    document.getElementById('statCorrect').textContent = correctQ;
+    document.getElementById('scoreDisplay').textContent = correctQ;
+    addXP(10, '✅ إجابة صحيحة');
+  } else {
+    addXP(2, '📚 حاول مجدداً');
+  }
+  document.getElementById('scoreDenom').textContent = correctQ + (answeredQ - correctQ) * 0 + answeredQ;
+}
+
+let flippedCards = new Set();
+function flipCard(card, idx) {
+  const key = 'essay-' + idx;
+  card.classList.toggle('flipped');
+  if (!flippedCards.has(key)) {
+    flippedCards.add(key);
+    answeredQ++;
+    document.getElementById('statAnswered').textContent = answeredQ;
+    addXP(5, '📖 مراجعة مقالي');
+  }
+}
+
+setTimeout(() => {
+  document.getElementById('xpFill').style.width = '0%';
+}, 100);
+</script>
